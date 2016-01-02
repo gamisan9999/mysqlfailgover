@@ -84,14 +84,14 @@ func main() {
 	// MHA failover scriptの引数よりRouteTableを書き換えるための必要な引数をセットする
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "command",
-			Value: "start, stop_ssh, status",
-			Usage: "mha executable failover command arguments --command",
-		},
-		cli.StringFlag{
 			Name:  "mysql_master_vip",
 			Value: "mysql master host vip/CIDR",
 			Usage: "mha executable failover command arguments --mysql_master_vip, ex) --mysql_master_vip=192.168.10.1/32",
+		},
+		cli.StringFlag{
+			Name:  "command",
+			Value: "start, stop_ssh, status",
+			Usage: "mha executable failover command arguments --command",
 		},
 		cli.StringFlag{
 			Name:  "orig_master_host, host",
@@ -122,14 +122,29 @@ func main() {
 			Value: "ssh_username",
 			Usage: "no use",
 		},
+		cli.StringFlag{
+			Name:  "new_master_port",
+			Value: "new master port",
+			Usage: "no use",
+		},
+		cli.StringFlag{
+			Name:  "new_master_user",
+			Value: "new_master_user(mha)",
+			Usage: "no use",
+		},
+		cli.StringFlag{
+			Name:  "new_master_password",
+			Value: "new_master_password(mha user's password)",
+			Usage: "no use",
+		},
 	}
 
 	app.Action = func(c *cli.Context) {
+		fmt.Println(c.NumFlags())
 		if c.NumFlags() == 0 {
 			fmt.Println(app.Name, " --help to view usage.")
 			os.Exit(1)
 		}
-
 		svc := ec2.New(session.New(), &aws.Config{Region: aws.String("ap-northeast-1")})
 		if c.String("command") == "status" {
 			origMasterInstanceID := ipToInstanceID(svc, c.String("orig_master_ip"))
