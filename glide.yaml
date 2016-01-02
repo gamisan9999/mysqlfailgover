@@ -9,6 +9,7 @@ import:
   - package: github.com/aws/aws-sdk-go/aws
   - package: github.com/aws/aws-sdk-go/service/ec2
   - package: github.com/codegangsta/cli
+  - package: github.com/mitchellh/gox
   # Use 'go get' to fetch a package:
   #- package: github.com/Masterminds/cookoo
   # Get and manage a package with Git:
