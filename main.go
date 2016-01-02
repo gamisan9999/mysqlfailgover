@@ -84,6 +84,11 @@ func main() {
 	// MHA failover scriptの引数よりRouteTableを書き換えるための必要な引数をセットする
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
+			Name:  "command",
+			Value: "start, stop_ssh, status",
+			Usage: "mha executable failover command arguments --command",
+		},
+		cli.StringFlag{
 			Name:  "mysql_master_vip",
 			Value: "mysql master host vip/CIDR",
 			Usage: "mha executable failover command arguments --mysql_master_vip, ex) --mysql_master_vip=192.168.10.1/32",
@@ -108,28 +113,44 @@ func main() {
 			Value: "new master host ip",
 			Usage: "mha executable failover command arguments --new_master_ip",
 		},
+		cli.StringFlag{
+			Name:  "orig_master_port",
+			Value: "no use",
+		},
+		cli.StringFlag{
+			Name:  "ssh_user",
+			Value: "ssh_username",
+			Usage: "no use",
+		},
 	}
 
 	app.Action = func(c *cli.Context) {
-		fmt.Println(c.NumFlags())
 		if c.NumFlags() == 0 {
 			fmt.Println(app.Name, " --help to view usage.")
 			os.Exit(1)
 		}
-		fmt.Println("mysql master vip:", c.String("mysql_master_vip"))
-		fmt.Println("master_host:", c.String("orig_master_host"))
-		fmt.Println("master_host_ip:", c.String("orig_master_host_ip"))
+
 		svc := ec2.New(session.New(), &aws.Config{Region: aws.String("ap-northeast-1")})
-		// MHA failoverscriptの引数に渡されるprivate ip addressからInstance IDを取得する
-		origMasterInstanceID := ipToInstanceID(svc, c.String("orig_master_ip"))
-		newMasterInstanceID := ipToInstanceID(svc, c.String("new_master_ip"))
-		fmt.Println(c.String("orig_master_ip"), "=", origMasterInstanceID)
-		fmt.Println(c.String("new_master_ip"), "=", newMasterInstanceID)
-		routetableID := instanceIDToRouteTableID(svc, origMasterInstanceID)
-		fmt.Println("orig_master_ip registration route table id: ", routetableID)
-		fmt.Println("route table id", routetableID, ",replace destination instance ", origMasterInstanceID, "to", newMasterInstanceID)
-		replaceRouteTable(svc, c.String("mysql_master_vip"), routetableID, newMasterInstanceID)
-		fmt.Println("route table,", routetableID, "replaced.")
+		if c.String("command") == "status" {
+			origMasterInstanceID := ipToInstanceID(svc, c.String("orig_master_ip"))
+			routetableID := instanceIDToRouteTableID(svc, origMasterInstanceID)
+			fmt.Println("orig_master_ip registration route table id: ", routetableID)
+		}
+		if c.String("command") == "start" {
+			fmt.Println("mysql master vip:", c.String("mysql_master_vip"))
+			fmt.Println("master_host:", c.String("orig_master_host"))
+			fmt.Println("master_host_ip:", c.String("orig_master_host_ip"))
+			// MHA failoverscriptの引数に渡されるprivate ip addressからInstance IDを取得する
+			origMasterInstanceID := ipToInstanceID(svc, c.String("orig_master_ip"))
+			newMasterInstanceID := ipToInstanceID(svc, c.String("new_master_ip"))
+			fmt.Println(c.String("orig_master_ip"), "=", origMasterInstanceID)
+			fmt.Println(c.String("new_master_ip"), "=", newMasterInstanceID)
+			routetableID := instanceIDToRouteTableID(svc, origMasterInstanceID)
+			fmt.Println("orig_master_ip registration route table id: ", routetableID)
+			fmt.Println("route table id", routetableID, ",replace destination instance ", origMasterInstanceID, "to", newMasterInstanceID)
+			replaceRouteTable(svc, c.String("mysql_master_vip"), routetableID, newMasterInstanceID)
+			fmt.Println("route table,", routetableID, "replaced.")
+		}
 	}
 	app.Run(os.Args)
 }
