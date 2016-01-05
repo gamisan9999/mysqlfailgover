@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/codegangsta/cli"
@@ -137,6 +138,11 @@ func main() {
 			Value: "new_master_password(mha user's password)",
 			Usage: "no use",
 		},
+		cli.StringFlag{
+			Name:  "region",
+			Value: "AWS Region",
+			Usage: "--region=ap-northeast-1",
+		},
 	}
 
 	app.Action = func(c *cli.Context) {
@@ -145,7 +151,24 @@ func main() {
 			fmt.Println(app.Name, " --help to view usage.")
 			os.Exit(1)
 		}
-		svc := ec2.New(session.New(), &aws.Config{Region: aws.String("ap-northeast-1")})
+		// リージョン判定
+		// --regionがap-northeast-1またはus-west-2でない場合はmysqlfailgoverが蹴られるinstanceのregionを利用する
+		var region string
+		var err error
+		if c.String("region") == "ap-northeast-1" {
+			region = c.String("region")
+		} else if c.String("region") == "us-west-2" {
+			region = c.String("region")
+		} else {
+			metadata := ec2metadata.New(session.New())
+			region, err = metadata.Region()
+			if err != nil {
+				os.Exit(1)
+			}
+		}
+		fmt.Println(region)
+		os.Exit(0)
+		svc := ec2.New(session.New(), &aws.Config{Region: aws.String(region)})
 		if c.String("command") == "status" {
 			origMasterInstanceID := ipToInstanceID(svc, c.String("orig_master_ip"))
 			routetableID := instanceIDToRouteTableID(svc, origMasterInstanceID)
