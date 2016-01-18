@@ -128,6 +128,16 @@ func main() {
 			Usage: "no use",
 		},
 		cli.StringFlag{
+			Name:  "orig_master_user",
+			Value: "orig_master_user(mha)",
+			Usage: "no use",
+		},
+		cli.StringFlag{
+			Name:  "orig_master_password",
+			Value: "orig_master_password",
+			Usage: "no use",
+		},
+		cli.StringFlag{
 			Name:  "new_master_user",
 			Value: "new_master_user(mha)",
 			Usage: "no use",
@@ -135,6 +145,16 @@ func main() {
 		cli.StringFlag{
 			Name:  "new_master_password",
 			Value: "new_master_password(mha user's password)",
+			Usage: "no use",
+		},
+		cli.StringFlag{
+			Name:  "new_master_ssh_user",
+			Value: "new_master_ssh_user",
+			Usage: "no use",
+		},
+		cli.StringFlag{
+			Name:  "orig_master_ssh_user",
+			Value: "orig_master_ssh_user",
 			Usage: "no use",
 		},
 	}
